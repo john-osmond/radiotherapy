@@ -1,0 +1,38 @@
+function [] = merge(name, ext, device, no)
+
+% Matlab script to merge all frames with a common prefix into single, mean
+% file.
+
+% Delete existing averaged files:
+
+if ( exist([name '_all.' ext]) == 2 )
+    delete([name '_all.' ext]);
+end
+
+% Read image names into array:
+
+nameall = dir([name '_*.' ext]);
+
+if ( strcmp(no,'n') == 1)
+    no = length(nameall);
+    filename = [name '_mall.' ext];
+else
+    filename = [name '_m' '.' ext];
+end
+
+% Loop round all frames:
+
+for frame = 1:no
+    [img(:,:,frame)] = mi3read(nameall(frame).name, device);
+end
+
+imgmean = mean(img, 3);
+clear img
+
+% Write averaged image:
+
+fp = fopen([name '_all.' ext], 'wb');
+fwrite(fp, imgmean, 'uint16');
+fclose(fp);
+
+end

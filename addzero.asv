@@ -1,0 +1,31 @@
+function [] = addzero(name, ext)
+
+% Script to rename files.
+
+% Assumptions:
+% Files are numbered from zero.
+% Files are successively numbered.
+% Filenames contain no leading zeros.
+% Files number less than one thousand.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Read in all files beginning with name:
+
+nameall = dir([name '*.' ext]);
+
+% Loop round all files:
+
+for no = 0:length(nameall)-1
+    
+    if ( no < 10 )
+        a = [name '_' no '.' ext]
+        %movefile([name '_' num2str(no) '.' ext], [name '_00' no '.' ext])
+    elseif ( no < 100 )
+        a = [name '_' no '.' ext]
+        %movefile([name '_' num2str(no) '.' ext], [name '_0' no '.' ext])
+    end
+    
+end
+
+end

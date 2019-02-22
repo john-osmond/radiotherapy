@@ -1,0 +1,75 @@
+%width = [9 9 8 8 7 8]
+%gap = [13 19 18 18 24 0]
+maxdist = [1.4 5.5 4.5 4.85 7.5 0];
+%plot(gap(1:5)/4,maxdist(1:5),'d')
+%polyfit(gap(1:5)/4,maxdist(1:5),1)
+
+nopixcm = (nopixall+4708)/997;
+nopixcm(find(nopixall == 0)) = 0;
+
+plot(frameall/4.12,nopixall/997,'-b','linewidth',1.0);
+%plot(frameall,nopixall,'o','markeredgecolor','b','markerfacecolor','b','markersize',6,'linewidth',1.5);
+set(gca,'xlim',[1 50],'ylim',[0 80],'Fontsize',10,'linewidth',1.0)
+%line([0 grouptot*frametot],[0 0],'Color','k','linewidth',1.5);
+xlabel('Time (s)','Fontsize',12);
+ylabel('Area (cm^{2})','Fontsize',12);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% If doserate 400, framerate
+
+% Square top parameters:
+
+framestart = 31;
+doserate = 540;
+leafspeed = 2.22
+delay = 2.46
+
+% Fermi parameters (25,320,2.49.1.595.0.15):
+
+%framestart = 26;
+%doserate = 340;
+%leafspeed = 2.49;
+%delay = 1.595;
+%d = 0.15;
+%dE = -1;
+
+dosetot = 100;
+segtot = 6;
+framerate = 4.12;
+frameseg = (dosetot/segtot) * (60/doserate) * framerate;
+
+segment = 0;
+linac = 0;
+
+for frame = 1:length(frameall)
+   mod(frame) = 0;
+   
+   if (frame == uint16(framestart) && segment < segtot )
+       linac = 1
+       segment = segment + 1;
+   end
+
+   if (frame == uint16(framestart + frameseg))
+       linac = 0
+       framestart = frame + (delay + (maxdist(segment)/leafspeed)) * framerate;
+   end
+   
+   if (linac == 1)
+       fermi = 1;
+       %fermi = 1 * 1/(1+exp(((framestart/framerate) - (frame/framerate) - dE)/d));
+       mod(frame) = mod(frame) + (areaall(segment) * fermi) - 4.7;
+   end
+
+end
+
+l
+
+hold on;
+plot(frameall/4.12,mod,'--k','linewidth',1)
+hold off;
+
+%set(gca,'xtick',[0:20:200])
+print('-djpeg','out/nopix.jpg');
+print('-deps','out/nopix.ps');
+close;

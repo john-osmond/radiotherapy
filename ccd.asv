@@ -1,0 +1,36 @@
+% Start up:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+clear
+close all hidden
+clc
+tic
+
+% 1-3: Square; 4,10: IMRT; 5,16-17,19: Noise; 6,15,18,20,21: ?; 7-9,13: open field; 11: QC3,
+% 12: Las Vegas; 14: Skull;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Set some data specific variables:
+
+imgall = [021];
+
+for imgno = 1:length(imgall)
+    
+    [Hdr, Imgs, Rng] = ReadRil([imgall(imgno)]);
+    imgsum=(sum(Imgs,3));
+    imgsize=size(Imgs);
+    imgmean=imgsum./imgsize(3);
+    
+    [ofhdr, ofimg, ofrng] = ReadRil('List007.ril');
+    ofsum=(sum(ofimg,3));
+    ofsize=size(ofimg);
+    ofmean=ofsum./ofsize(3);
+
+    imgcor = imgmean./ofmean;
+    
+end
+
+%croprange=[Rng(1)+0.05*(Rng(2)-Rng(1)) Rng(2)-0.05*(Rng(2)-Rng(1))];
+%imshow(imgmean,[croprange]);

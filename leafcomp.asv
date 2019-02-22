@@ -1,0 +1,161 @@
+function [leavesout, m, xc] = leafcomp(leaves, leavesout, m, xc)
+
+% Function to compared observed leaf positions to prescribed leaf positions
+% Takes array containing prescribed leaf positions in isocentre
+% co-ordinates and observed leaf positions in pixel co-ordinates, scale
+% factor and y offset as input.  Adds displacement values to
+% observed leaf array and produces scale factor and y offset as output.
+
+% Contents of dimension 2 in leavesout array:
+
+% 1 positive leaf position in pixel co-ordinates,
+% 2 negative leaf position in pixel co-ordinates,
+% 3 positive leaf position in iso-centre co-ordinates,
+% 4 negative leaf position in iso-centre co-ordinates,
+% 5 positive leaf displacement in iso-centre co-ordinates,
+% 6 negative leaf displacement in iso-centre co-ordinates.
+
+report = 1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Swap x positions of leaves in prescription data to flip image horizontally
+% as as linac software does:
+
+leaves(:,1:2) = leaves(:,1:2) .* -1;
+
+% Generate array of indices corresponding to open leaves:
+
+leafind = find( leaves(:,6) > 0 );
+
+% If necessary determine m and xc transform parameters:
+
+if ( strcmp(m,'n') == 1 )
+    mall = (leaves(leafind,2) - leaves(leafind,1)) ./ ...
+        (leavesout(leafind,2) - leavesout(leafind,1));
+    m = sqrt((mean(mall))^2);
+end
+
+if ( strcmp(xc,'n') == 1 )
+    xcall = leaves(leafind,1:2) - ...
+        (leavesout(leafind,1:2).*m);
+    xc = mean(mean(xcall));
+end
+
+% Write observed leaf positions in isocentre co-ordinates to observed leaf
+% array:
+
+leavesout(leafind,3:4) = leavesout(leafind,1:2).*m + xc
+
+% Write displacement values to observed leaf array:
+
+leavesout(leafind,5:6) = leavesout(leafind,3:4) - ...
+    leaves(leafind,1:2);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Loop around leaves and plot prescribed and matched shapes:
+
+for leaf = 1:length(leaves)
+    if ( report == 1 && leaves(leaf,6) > 0 )
+        
+        % Calculate leafwidth:
+        
+        leafwidth = leaves(leaf,4) - leaves(leaf,3);
+        
+        % Plot prescribed leaves:
+        
+        rectangle('Position',...
+            [leaves(leaf,1),leaves(leaf,3), ...
+            leaves(leaf,2)-leaves(leaf,1), leafwidth], ...
+            'LineWidth',0.1,'EdgeColor','w','FaceColor','w');
+        
+        % Plot observed leaves:
+ 
+        rectangle('Position',...
+            [leavesout(leaf,3),leaves(leaf,3), ...
+            leavesout(leaf,4)-leavesout(leaf,3),leafwidth], ...
+            'LineWidth',2,'EdgeColor','r');
+                    
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Adjust and print plot:
+
+if ( report == 1 )
+    
+    % Calculate plot limits:
+    
+    xlim = [min(leaves(leafind,1)) max(leaves(leafind,2))];
+    ylim = [leaves(leafind(1),3) leaves(leafind(end),4)];
+    
+    range = max([xlim(2)-xlim(1) ylim(2)-ylim(1)]) + 2;
+    
+    xlimplot = [(mean(xlim) - range/2) (mean(xlim) + range/2)];
+    ylimplot = [(mean(ylim) - range/2) (mean(ylim) + range/2)];
+    
+    % Print and close plot:
+    
+    whitebg([0.1 0.1 0.1]);
+
+    time = clock;
+    mins = num2str(time(5));
+    secs = num2str(uint16(time(6)*10));
+    
+    %pause
+    
+    plotname = ['out/leafcomp_' mins '_' secs '.jpg'];
+    xlabel('X (cm)','Fontsize',18);
+    ylabel('Y (cm)','Fontsize',18);
+    set(gcf,'InvertHardcopy','off');
+    set(gca,'Fontsize',16,'xlim',xlimplot,'ylim',ylimplot,'linewidth',1.2);
+    axis ij;
+    print('-djpeg',plotname);
+    plotname = ['out/leafcomp_' mins '_' secs '.ps'];
+    print('-deps',plotname);
+    close;
+    
+    % Plot displacements:
+
+    %for leaf = 1:size(leavesout,1)
+    %    if ( leavesout(leaf,5) < 0 )
+    %        leavesout(leaf,5) = leavesout(leaf,5) + 0.008;
+    %    else
+    %        leavesout(leaf,5) = leavesout(leaf,5) - 0.008;
+    %    end
+        
+    %    if ( leavesout(leaf,6) < 0 )
+    %        leavesout(leaf,6) = leavesout(leaf,6) + 0.008;
+    %    else
+    %        leavesout(leaf,6) = leavesout(leaf,6) - 0.008;
+    %    end
+    %end
+    
+    whitebg
+    plot(leavesout(leafind,5),'-b','markeredgecolor','b','linewidth',1.5)
+    hold on
+    plot(leavesout(leafind,6),'--r','markeredgecolor','b','linewidth',1.5);
+    hold off
+    grid on
+    line([1 length(leafind)],[0 0],'color','k','linewidth',1.5);
+    set(gca,'xlim',[1 length(leafind)],'xtick',[1:1:length(leafind)],'Fontsize',16,'linewidth',1.2)
+        
+    legend('Pos Leaf','Neg Leaf')
+    
+    xlabel('Leaf Pair','Fontsize',18);
+    ylabel('Displacement (cm)','Fontsize',18);
+        plotname = ['out/leafdisp_' mins '_' secs '.jpg'];
+    print('-djpeg',plotname);
+    plotname = ['out/leafdisp_' mins '_' secs '.ps'];
+    print('-deps',plotname);
+    close;
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+end

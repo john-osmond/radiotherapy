@@ -1,0 +1,53 @@
+% Start up:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+clear
+close all hidden
+clc
+tic
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Create some data specific variables:
+
+open = 'openfield';
+dark = 'dark_b';
+ext = 'mi3';
+devin = 'v';
+devout = 'vp';
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Merge relevent images if necessary:
+
+if ( exist([dark '_all.' ext]) == 0 )
+    merge(dark, ext, devin);
+end
+
+if ( exist([open '_all.' ext]) == 0 )
+    merge(open, ext, devin);
+end
+
+[imgd] = mi3read([dark '_all.' ext], devout);
+[imgo] = mi3read([open '_all.' ext], devout);
+
+% Dark correct image:
+
+imgcor = imgo - imgd;
+
+% Smooth image:
+
+gaussfilt = fspecial('gaussian', [8 8], 2);
+imgsmo = filter2(gaussfilt,imgcor);
+imtool(imgsmo);
+
+% Print images to file:
+
+imagesc(imgcor);
+colormap(gray);
+print('-djpeg','out/open.jpg');
+
+imagesc(imgsmo);
+colormap(gray);
+print('-djpeg','out/open_smooth.jpg');

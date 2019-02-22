@@ -1,0 +1,22 @@
+function [img] = mi3open(name, device, class, width, height)
+
+% Matlab script to open image for different devices.
+
+if ( strcmp(device,'st') == 1 )
+    
+elseif ( strcmp(device,'v') == 1)
+
+    width = 520;
+    height = 520;
+    imgarea = width * height;
+
+fp = fopen(name,'r');
+imgdata1 = fread(fp, imgarea, class);
+imgdata2 = bitand(fread(fp, imgarea, class), 15);
+imgdata = 4095-(uint16(imgdata1)+(uint16(imgdata2)*256));
+img = reshape(imgdata, width, height);
+fclose(fp);
+
+end
+
+end
